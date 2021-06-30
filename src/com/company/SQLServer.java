@@ -3,7 +3,6 @@ package com.company;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 public class SQLServer {
     private BaseDeDados baseConectada;
@@ -19,8 +18,8 @@ public class SQLServer {
                 String nomeColuna = valores.get(1);
 
                 boolean isInt = false;
-                if (!valores.isEmpty()){
-                    if (!(valores.get(2).charAt(0) == '\'')){
+                if (!valores.isEmpty()) {
+                    if (!(valores.get(2).charAt(0) == '\'')) {
                         isInt = true;
                     }
                 }
@@ -54,6 +53,11 @@ public class SQLServer {
     }
 
     public void execute(String sqlStatement) {
+        if (baseConectada == null) {
+            System.out.println("ERRO: Servidor não conectado a uma base de dados");
+            return;
+        }
+
         try {
             String comandos = "";
             String valores = "";
@@ -79,17 +83,39 @@ public class SQLServer {
                     }
                     break;
                 case ("delete"):
-                    System.out.println("delete");
+                    if (listaComandos.size() == 7) {
+                        if (listaComandos.get(0).equals("delete") && listaComandos.get(1).equals("from")) {
+                            String nomeTabela = listaComandos.get(2);
+                            if (listaComandos.get(3).equals("where")) {
+                                String parametro = listaComandos.get(4);
+                                if (listaComandos.get(5).equals("=")) {
+                                    String valor = listaComandos.get(6);
+                                    baseConectada.deletar(nomeTabela, parametro, valor);
+                                }
+                            }
+                        }
+                    } else if (listaComandos.size() == 3) {
+                        if (listaComandos.get(0).equals("delete") && listaComandos.get(1).equals("from")) {
+                            baseConectada.deletar(listaComandos.get(2));
+                        }
+                    } else {
+                        System.out.println("Erro de sintaxe em \"" + sqlStatement + "\"");
+                    }
                     break;
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Erro de sintaxe em \"" + sqlStatement + "\"");
+            e.printStackTrace();
         }
-
 
     }
 
     public String query(String sqlQuery) {
+        if (baseConectada == null) {
+            System.out.println("ERRO: Servidor não conectado a uma base de dados");
+            return "ERRO";
+        }
+
         try {
             String s = "";
             for (int i = 0; i < sqlQuery.length(); i++) {
@@ -116,10 +142,11 @@ public class SQLServer {
     }
 
     public void close() {
-        if (baseConectada != null){
+        if (baseConectada != null) {
             try (PrintWriter out = new PrintWriter(new FileWriter(baseConectada.getNome() + ".db"))) {
                 out.print(baseConectada.paraArquivo());
             } catch (IOException e) {
+                System.out.println("Erro salvando base de dados");
             }
         } else {
             System.out.println("ERRO: Nenhuma base conectada para fechar a conexao");

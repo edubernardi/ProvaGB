@@ -1,51 +1,51 @@
 package com.company;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class Tabela {
     private String nome;
     private ArrayList<Coluna> colunas = new ArrayList<Coluna>();
 
-
     public Tabela(String nome) {
         this.nome = nome;
     }
 
-    public void adicionarColuna(String nome, String tipo){
-        if (tipo.equals("int")){
+    public void adicionarColuna(String nome, String tipo) {
+        if (tipo.equals("int")) {
             colunas.add(new Coluna<Integer>(nome, true));
         } else {
             colunas.add(new Coluna<String>(nome, false));
         }
     }
 
-    public void adicionarColuna(Coluna c){
+    public void adicionarColuna(Coluna c) {
         colunas.add(c);
     }
 
-    public void inserir(String dados){
+    public void inserir(String dados) {
         int j = 0;
         String valor = "";
         boolean inteiro = true;
-        for (int i = 0; i < dados.length(); i++){
-            if (dados.charAt(i) == '\''){
-                if (inteiro){
+        for (int i = 0; i < dados.length(); i++) {
+            if (dados.charAt(i) == '\'') {
+                if (inteiro) {
                     valor = "";
                 }
                 inteiro = false;
             }
-            if (dados.charAt(i) == '('){
+            if (dados.charAt(i) == '(') {
                 valor = "";
-            } else if (dados.charAt(i) == ',' || dados.charAt(i) == ')'){
-                if (inteiro){
-                    if (colunas.get(j).isInt()){
+            } else if (dados.charAt(i) == ',' || dados.charAt(i) == ')') {
+                if (inteiro) {
+                    if (colunas.get(j).isInt()) {
                         colunas.get(j).add(Integer.parseInt(valor));
                     } else {
                         System.out.println("ERRO: Tipo Int nao eh suportado pela coluna " +
                                 colunas.get(j).getNomeColuna() + " na tabela " + nome);
                     }
                 } else {
-                    if (!colunas.get(j).isInt()){
+                    if (!colunas.get(j).isInt()) {
                         colunas.get(j).add(valor);
                     } else {
                         System.out.println("ERRO: Tipo String nao eh suportado pela coluna " +
@@ -55,7 +55,7 @@ public class Tabela {
                 valor = "";
                 inteiro = true;
                 j++;
-            } else if (dados.charAt(i) != ' '){
+            } else if (dados.charAt(i) != ' ') {
                 valor += dados.charAt(i);
             }
         }
@@ -65,17 +65,17 @@ public class Tabela {
         return nome;
     }
 
-    public String toString(){
+    public String toString() {
         String s = "";
-        for (Coluna c: colunas){
+        for (Coluna c : colunas) {
             s += c.toString() + "\n";
         }
         return s;
     }
 
-    public String toString(String nomeColuna){
-        for (Coluna c: colunas){
-            if (c.getNomeColuna().equals(nomeColuna)){
+    public String toString(String nomeColuna) {
+        for (Coluna c : colunas) {
+            if (c.getNomeColuna().equals(nomeColuna)) {
                 return c.toString() + "\n";
             }
         }
@@ -83,12 +83,44 @@ public class Tabela {
         return "";
     }
 
-    public String paraArquivo(){
+    public String paraArquivo() {
         String s = "";
-        for (Coluna c: colunas){
+        for (Coluna c : colunas) {
             s += nome + ";" + c.paraArquivo() + "\n";
         }
         return s;
+    }
+
+    public void deletar(String parametro, String valor) {
+        for (Coluna c : colunas) {
+            if (c.getNomeColuna().equals(parametro)) {
+                LinkedList<Integer> indexes = new LinkedList<Integer>();
+                if (c.isInt()) {
+                    try {
+                        indexes = c.deletar(Integer.parseInt(valor));
+                    } catch (Exception e) {
+                        System.out.println("Tipo String nao suportado pela coluna " + parametro);
+                    }
+                } else {
+                    indexes = c.deletar(valor);
+                }
+                if (indexes.size() > 0) {
+                    for (Integer index : indexes) {
+                        for (Coluna coluna : colunas) {
+                            if (!coluna.getNomeColuna().equals(parametro)) {
+                                coluna.deletarIndice(index);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void deletarTudo() {
+        for (Coluna c : colunas) {
+            c.deletarTudo();
+        }
     }
 }
 
